@@ -1,0 +1,12 @@
+image: alpine:latest
+# https://docs.gitlab.com/ce/user/project/pages/introduction.html#gitlab-ciyml-for-plain-html-websites
+pages:
+  script:
+  - mkdir .public
+  - cp -r * .public
+  - mv .public public
+  artifacts:
+    paths:
+    - public
+  only:
+  - master
