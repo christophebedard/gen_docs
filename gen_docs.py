@@ -36,7 +36,9 @@ cppref_zip_url = 'http://upload.cppreference.com/mwiki/images/b/b2/html_book_201
 
 def parse_args() -> argparse.Namespace:
     """Parse args."""
-    parser = argparse.ArgumentParser(description='Generate Doxygen documentation for .')
+    parser = argparse.ArgumentParser(
+        description='Generate Doxygen documentation for ROS packages in a repo.',
+    )
     add_arguments(parser)
     return parser.parse_args()
 
@@ -49,9 +51,21 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
         help='the path to the configuration file (default: %(default)s)',
     )
     parser.add_argument(
+        '--version',
+        nargs='*',
+        default=None,
+        help=(
+            'override the configuration file versions with '
+            'custom versions (default: %(default)s)'
+        ),
+    )
+    parser.add_argument(
         '-o', '--output',
         default='output',
-        help='the base directory in which to put the generated documentation (default: %(default)s)',
+        help=(
+            'the base directory in which to put the '
+            'generated documentation (default: %(default)s)'
+        ),
     )
     parser.add_argument(
         '--clean',
@@ -256,6 +270,7 @@ def get_packages(
 
 def main() -> int:
     args = parse_args()
+    custom_versions = args.version
     output_dir = os.path.join(os.path.curdir, args.output)
     repos_dir = os.path.join(os.path.curdir, 'repos')
 
@@ -274,10 +289,15 @@ def main() -> int:
     config = load_config(args.config)
     if not is_valid_config(config):
         return 1
+    if custom_versions:
+        config['docs']['versions'] = {version: None for version in custom_versions}
     print('Configuration:')
     for version, packages in config['docs']['versions'].items():
         packages_list = ', '.join(packages) if packages else ''
-        print(f"\t{version}{f': {packages_list}' if packages_list else ' (all)'}")
+        print(
+            f"\t{version}{f': {packages_list}' if packages_list else ' (all)'}"
+            f"{' (overriden)' if custom_versions else ''}"
+        )
 
     print()
 
