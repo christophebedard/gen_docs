@@ -1,12 +1,12 @@
-image: alpine:latest
-# https://docs.gitlab.com/ce/user/project/pages/introduction.html#gitlab-ciyml-for-plain-html-websites
+image: ubuntu:20.04
 pages:
+  only:
+    - master
+  before_script:
+    - apt-get update && apt-get install -y python3-dev python3-pip git doxygen
+    - pip3 install -r requirements.txt
   script:
-  - mkdir .public
-  - cp -r * .public
-  - mv .public public
+    - python3 gen_docs.py
   artifacts:
     paths:
-    - public
-  only:
-  - master
+      - public
