@@ -98,6 +98,24 @@ def has_doxygen() -> bool:
     return run(['doxygen', '--help'])[0].returncode == 0
 
 
+def run_doxygen(
+    dir: str,
+    version: str,
+) -> bool:
+    """
+    Run doxygen in a directory.
+
+    :param dir: the directory in which to run doxygen
+    :param version: the version (PROJECT_NUMBER) to be used by doxygen
+    :return: True if successful, False otherwise
+    """
+    os.environ['PROJECT_NUMBER'] = version
+    rc, _, _ = run(['doxygen'], dir)
+    if 0 != rc.returncode:
+        return False
+    return True
+
+
 def expand_template_file(
     template_file_name: str,
     dest_file_path: str,
@@ -341,9 +359,7 @@ def main() -> int:
                 continue
             # Run doxygen for package
             print(f"\tRunning doxygen for package '{package}'")
-            os.environ['PROJECT_NUMBER'] = version
-            rc, _, _ = run(['doxygen'], package_dir)
-            if 0 != rc.returncode:
+            if not run_doxygen(package_dir, version):
                 return 1
             # Move output
             package_output_dir = os.path.join(package_dir, 'doc_output', 'html')
