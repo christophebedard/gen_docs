@@ -49,6 +49,11 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
         help='the path to the configuration file (default: %(default)s)',
     )
     parser.add_argument(
+        '-o', '--output',
+        default='output',
+        help='the base directory in which to put the generated documentation (default: %(default)s)',
+    )
+    parser.add_argument(
         '--clean',
         action='store_true',
         help='remove directories and files that might have been created by running the command',
@@ -251,11 +256,13 @@ def get_packages(
 
 def main() -> int:
     args = parse_args()
+    output_dir = os.path.join(os.path.curdir, args.output)
+    repos_dir = os.path.join(os.path.curdir, 'repos')
 
     if args.clean:
         print('Cleaning up')
-        shutil.rmtree(os.path.join(os.path.curdir, 'public'), ignore_errors=True)
-        shutil.rmtree(os.path.join(os.path.curdir, 'repos'), ignore_errors=True)
+        shutil.rmtree(output_dir, ignore_errors=True)
+        shutil.rmtree(repos_dir, ignore_errors=True)
         return 0
 
     # Check that doxygen is installed
@@ -289,13 +296,11 @@ def main() -> int:
 
     # Process repos
     repo_url = config['docs']['repo']
-    public_dir = os.path.join(os.path.curdir, 'public')
-    repos_clone_dir = os.path.join(os.path.curdir, 'repos')
     valid = defaultdict(list)
     for version, packages in config['docs']['versions'].items():
         # Clone repo @ branch
         print(f"Cloning repo at version '{version}'")
-        repo_dir = os.path.join(repos_clone_dir, version)
+        repo_dir = os.path.join(repos_dir, version)
         if not clone_repo(repo_url, repo_dir, branch=version):
             return 1
 
@@ -306,7 +311,7 @@ def main() -> int:
                 print(f"Could not find any packages for version '{version}', skipping")
                 continue
             print(f'\tFound packages: {packages}')
-        version_output_dir = os.path.join(public_dir, version)
+        version_output_dir = os.path.join(output_dir, version)
         # Process packages
         for package in packages:
             package_dir = os.path.join(repo_dir, package)
@@ -338,7 +343,7 @@ def main() -> int:
         packages_list_file = create_packages_list_file(
             version,
             packages,
-            os.path.join(public_dir, version),
+            os.path.join(output_dir, version),
             other_versions,
         )
         if not packages_list_file:
@@ -347,7 +352,7 @@ def main() -> int:
     # Create redirect to default version (first one in the list)
     default_version = list(valid.keys())[0]
     print(f"Creating redirection file to default version '{default_version}'")
-    main_index_file = create_html_redirect_file(default_version, public_dir)
+    main_index_file = create_html_redirect_file(default_version, output_dir)
     if not main_index_file:
         print('Failed to create redirection file to default version')
         return 1
