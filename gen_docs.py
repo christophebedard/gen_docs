@@ -341,6 +341,7 @@ def main() -> int:
                 continue
             # Run doxygen for package
             print(f"\tRunning doxygen for package '{package}'")
+            os.environ['PROJECT_NUMBER'] = version
             rc, _, _ = run(['doxygen'], package_dir)
             if 0 != rc.returncode:
                 return 1
