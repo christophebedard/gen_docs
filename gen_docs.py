@@ -98,19 +98,50 @@ def has_doxygen() -> bool:
     return run(['doxygen', '--help'])[0].returncode == 0
 
 
+def has_sphinx() -> bool:
+    """Check if Sphinx is installed."""
+    return (
+        run(['make', '--help'])[0].returncode == 0 and
+        run(['sphinx-build', '--help'])[0].returncode == 0
+    )
+
+
 def run_doxygen(
-    dir: str,
+    package_dir: str,
     version: str,
 ) -> bool:
     """
-    Run doxygen in a directory.
+    Run doxygen for a package.
 
-    :param dir: the directory in which to run doxygen
-    :param version: the version (PROJECT_NUMBER) to be used by doxygen
+    :param package_dir: the directory of the package for which to run doxygen
+    :param version: the version (PROJECT_NUMBER) to be used/displayed by doxygen
     :return: True if successful, False otherwise
     """
     os.environ['PROJECT_NUMBER'] = version
-    rc, _, _ = run(['doxygen'], dir)
+    rc, _, _ = run(['doxygen'], package_dir)
+    if 0 != rc.returncode:
+        return False
+    return True
+
+
+def run_sphinx(
+    package_dir: str,
+    version: str,
+) -> bool:
+    """
+    Run sphinx for a package.
+
+    Assumes 
+
+    :param package_dir: the directory of the package for which run sphinx
+    :param version: the version to be used/displayed by sphinx
+    :return: True if successful, False otherwise
+    """
+    os.environ['SPHINX_VERSION_FULL'] = version
+    os.environ['SPHINX_VERSION_SHORT'] = version
+    # The Makefile is under docs/
+    make_path = os.path.join(package_dir, 'docs')
+    rc, _, _ = run(['make', 'html'], make_path)
     if 0 != rc.returncode:
         return False
     return True
@@ -286,6 +317,23 @@ def get_packages(
     return packages
 
 
+def get_package_docs_type(
+    package_dir: str,
+) -> Optional[str]:
+    """
+    Identify a package's documentation generation type.
+
+    :param package_dir: the directory of the package
+    :return: the docs type ('doxygen', 'sphinx') or None if it failed
+    """
+    if os.path.exists(os.path.join(package_dir, 'Doxyfile')):
+        return 'doxygen'
+    # For now a Makefile implies sphinx
+    if os.path.exists(os.path.join(package_dir, 'docs', 'Makefile')):
+        return 'sphinx'
+    return None
+
+
 def main() -> int:
     args = parse_args()
     custom_versions = args.version
@@ -301,6 +349,10 @@ def main() -> int:
     # Check that doxygen is installed
     if not has_doxygen():
         print('Could not find doxygen')
+        return 1
+    # Check that sphinx is installed
+    if not has_sphinx():
+        print('Could not find sphinx')
         return 1
 
     # Load config and validate
@@ -353,18 +405,29 @@ def main() -> int:
         # Process packages
         for package in packages:
             package_dir = os.path.join(repo_dir, package)
-            # Check if it has a Doxyfile
-            if not os.path.exists(os.path.join(package_dir, 'Doxyfile')):
-                print(f"\tCould not find a Doxyfile for package '{package}', skipping")
+            # Detect the package's docs type
+            docs_output_dir = None
+            docs_type = get_package_docs_type(package_dir)
+            if not docs_type:
+                print(f"\tCould not find documentation for package '{package}'")
                 continue
-            # Run doxygen for package
-            print(f"\tRunning doxygen for package '{package}'")
-            if not run_doxygen(package_dir, version):
-                return 1
+            # Run docs generation
+            print(f"\tRunning {docs_type} for package '{package}'")
+            if 'doxygen' == docs_type:
+                if not run_doxygen(package_dir, version):
+                    return 1
+                docs_output_dir = os.path.join(package_dir, 'doc_output', 'html')
+            elif 'sphinx' == docs_type:
+                if not run_sphinx(package_dir, version):
+                    return 1
+                docs_output_dir = os.path.join(package_dir, 'docs', 'build', 'html')
+            else:
+                print(f"\tUnknown docs type '{docs_type}' for package '{package}'")
+                continue
+            assert docs_output_dir
             # Move output
-            package_output_dir = os.path.join(package_dir, 'doc_output', 'html')
             public_package_dir = os.path.join(version_output_dir, package)
-            shutil.move(package_output_dir, public_package_dir)
+            shutil.move(docs_output_dir, public_package_dir)
             # Remember that this package is valid
             valid[version].append(package)
 

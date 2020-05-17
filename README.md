@@ -7,7 +7,13 @@ Tool for generating API documentation for [`ros2_tracing`](https://gitlab.com/mi
 Install dependencies:
 
 ```shell
-$ sudo apt-get update && sudo apt-get install -y python3-dev python3-pip git doxygen
+$ sudo apt-get update && sudo apt-get install -y \
+    python3-dev \
+    python3-pip \
+    git \
+    doxygen \
+    python3-sphinx \
+    python3-sphinx-autodoc-typehints
 $ pip3 install -r requirements.txt
 ```
 
