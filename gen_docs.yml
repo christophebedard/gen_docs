@@ -4,3 +4,4 @@ docs:
     master:
     foxy:
       - tracetools
+      - tracetools_test
