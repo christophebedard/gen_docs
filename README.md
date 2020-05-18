@@ -11,9 +11,7 @@ $ sudo apt-get update && sudo apt-get install -y \
     python3-dev \
     python3-pip \
     git \
-    doxygen \
-    python3-sphinx \
-    python3-sphinx-autodoc-typehints
+    doxygen
 $ pip3 install -r requirements.txt
 ```
 

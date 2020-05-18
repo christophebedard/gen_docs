@@ -1,3 +1,5 @@
 empy
 pyyaml
 requests
+sphinx
+sphinx-autodoc-typehints
