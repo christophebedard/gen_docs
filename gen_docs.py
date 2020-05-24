@@ -31,6 +31,7 @@ import requests
 import yaml
 
 
+data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
 cppref_zip_url = 'http://upload.cppreference.com/mwiki/images/b/b2/html_book_20190607.zip'
 
 
@@ -159,7 +160,7 @@ def expand_template_file(
     :param dest_file_path: the file path
     :return: the path of the created file, or None if it failed
     """
-    template_file_path = os.path.join(os.path.curdir, 'data', template_file_name)
+    template_file_path = os.path.join(data_dir, template_file_name)
     template = None
     with open(template_file_path, 'r') as f:
         template = f.read()
@@ -379,7 +380,7 @@ def main() -> int:
     _ = extract_file_from_zip(
         cppref_zip,
         'cppreference-doxygen-web.tag.xml',
-        'data',
+        data_dir,
     )
 
     print()
