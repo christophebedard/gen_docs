@@ -246,9 +246,33 @@ def extract_file_from_zip(
     :param zip_file: the ZipFile object
     :param internal_file_path: the internal path (inside the ZIP) of the file to extract
     :param dest: the directory to copy the file into
-    :return: the path of the extract file
+    :return: the path of the extracted file
     """
     return zip_file.extract(internal_file_path, path=dest)
+
+
+def download_zip_file_and_extract(
+    url: str,
+    internal_file_path: str,
+    dest: str,
+) -> Optional[str]:
+    """
+    Download ZIP and extract file to directory.
+
+    :param url: the URL of the ZIP file to download
+    :param internal_file_path: the internal path (inside the ZIP) of the file to extract
+    :param dest: the directory to copy the file into
+    :return: the path of the extracted file, or None if it failed
+    """
+    zip_ = download_zip_file(url)
+    if not zip_:
+        return None
+    extracted_file_path = extract_file_from_zip(
+        zip_,
+        internal_file_path,
+        dest,
+    )
+    return extracted_file_path
 
 
 def clone_repo(
@@ -387,14 +411,12 @@ def main() -> int:
 
     # Download cppreference file
     print('Downloading cppreference tag file')
-    cppref_zip = download_zip_file(cppref_zip_url)
-    if not cppref_zip:
-        return 1
-    _ = extract_file_from_zip(
-        cppref_zip,
+    if not download_zip_file_and_extract(
+        cppref_zip_url,
         'cppreference-doxygen-web.tag.xml',
         data_dir,
-    )
+    ):
+        return 1
 
     print()
 
