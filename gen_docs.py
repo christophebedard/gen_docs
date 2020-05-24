@@ -21,6 +21,7 @@ import os
 import shutil
 import subprocess
 import sys
+import time
 from typing import Any
 from typing import Dict
 from typing import List
@@ -205,6 +206,7 @@ def create_packages_list_file(
     :return: the path of the created file, or None if it failed
     """
     packages_list_file = os.path.join(dest, 'index.html')
+    timestamp = time.strftime('on %Y-%m-%d at %H:%M:%S +0000', time.gmtime())
     return expand_template_file(
         'packages_list.html',
         packages_list_file,
@@ -212,6 +214,7 @@ def create_packages_list_file(
             'version': version,
             'packages': packages,
             'other_versions': other_versions,
+            'timestamp': timestamp,
         },
     )
 
