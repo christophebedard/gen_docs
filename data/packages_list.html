@@ -1,21 +1,38 @@
 <!DOCTYPE html>
 <html>
+<head>
+<style>
+.container {
+  display: flex;
+  flex-direction: column;
+}
+.centered {
+  align-self: center;
+}
+</style>
+</head>
 <body>
-  <h1>ros2_tracing &#8212; @version</h1>
-  <h2>Packages</h2>
-  <ul>
-  @[for package in packages]
-    <li><a href="@package">@package</a></li>
-  @[end for]
-  </ul>
-  @[if other_versions]
-    <br><br>
-    <h2>Other version(s)</h2>
-    <ul>
-    @[for other_version in other_versions]
-      <li><a href="../@other_version">@other_version</a></li>
-    @[end for]
-    </ul>
-  @[end if]
+  <!-- <div style="width: 500px; margin: 0 auto;"> -->
+  <div class="container">
+    <div class="centered">
+      <h1>ros2_tracing &#8212; @version</h1>
+      <br>
+      <h2>Packages</h2>
+      <ul>
+      @[for package in packages]
+        <li><a href="@package">@package</a></li>
+      @[end for]
+      </ul>
+      @[if other_versions]
+        <br><br>
+        <h2>Other version(s)</h2>
+        <ul>
+        @[for other_version in other_versions]
+          <li><a href="../@other_version">@other_version</a></li>
+        @[end for]
+        </ul>
+      @[end if]
+    </div>
+  </div>
 </body>
 </html>
