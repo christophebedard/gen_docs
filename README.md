@@ -1,5 +1,7 @@
 # gen_docs
 
+![GitHub Action status](https://github.com/christophebedard/gen_docs/workflows/Test/badge.svg)
+
 Tool for generating documentation for ROS packages.
 It currently supports doxygen and sphinx.
 
