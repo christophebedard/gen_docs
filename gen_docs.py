@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Tool for generating documentation for ROS packages."""
+
 import argparse
 from collections import defaultdict
 from io import BytesIO
@@ -131,8 +133,6 @@ def run_sphinx(
 ) -> bool:
     """
     Run sphinx for a package.
-
-    Assumes 
 
     :param package_dir: the directory of the package for which run sphinx
     :param version: the version to be used/displayed by sphinx
@@ -336,6 +336,7 @@ def get_package_docs_type(
 
 
 def main() -> int:
+    """Run main logic."""
     args = parse_args()
     custom_versions = args.version
     output_dir = os.path.join(os.path.curdir, args.output)
