@@ -255,6 +255,7 @@ def download_zip_file_and_extract(
     url: str,
     internal_file_path: str,
     dest: str,
+    skip_if_exists: bool = True,
 ) -> Optional[str]:
     """
     Download ZIP and extract file to directory.
@@ -262,8 +263,13 @@ def download_zip_file_and_extract(
     :param url: the URL of the ZIP file to download
     :param internal_file_path: the internal path (inside the ZIP) of the file to extract
     :param dest: the directory to copy the file into
+    :param skip_if_exists: whether to skip downloading/extracting if destination file exists
     :return: the path of the extracted file, or None if it failed
     """
+    dest_file_path = os.path.join(dest, internal_file_path)
+    if skip_if_exists and os.path.exists(dest_file_path):
+        print('\tSkipping since it exists')
+        return dest_file_path
     zip_ = download_zip_file(url)
     if not zip_:
         return None
