@@ -1,6 +1,7 @@
-# ros2_tracing-api
+# gen_docs
 
-Tool for generating API documentation for [`ros2_tracing`](https://gitlab.com/micro-ROS/ros_tracing/ros2_tracing).
+Tool for generating documentation for ROS packages.
+It currently supports doxygen and sphinx.
 
 ## Prerequisites
 
@@ -17,7 +18,7 @@ $ pip3 install -r requirements.txt
 
 ## Usage
 
-Create or update the [configuration file](./gen_docs.yml), then run:
+Create a configuration file, then run:
 
 ```shell
 $ python3 gen_docs.py

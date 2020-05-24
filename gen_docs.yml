@@ -1,7 +1,0 @@
-docs:
-  repo: https://gitlab.com/micro-ROS/ros_tracing/ros2_tracing.git
-  versions:
-    master:
-    foxy:
-      - tracetools
-      - tracetools_test
