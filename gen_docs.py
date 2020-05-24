@@ -17,6 +17,7 @@
 import argparse
 from collections import defaultdict
 from io import BytesIO
+import re
 import os
 import shutil
 import subprocess
@@ -191,6 +192,7 @@ def create_html_redirect_file(
 
 
 def create_packages_list_file(
+    repo_name: str,
     version: str,
     packages: List[str],
     dest: str,
@@ -199,6 +201,7 @@ def create_packages_list_file(
     """
     Create packages list file.
 
+    :param repo_name: the name of the repository containing the packages
     :param version: the version/branch of these packages
     :param packages: the list of packages
     :param dest: the destination directory in which to put the file
@@ -211,6 +214,7 @@ def create_packages_list_file(
         'packages_list.html',
         packages_list_file,
         {
+            'repo_name': repo_name,
             'version': version,
             'packages': packages,
             'other_versions': other_versions,
@@ -479,10 +483,19 @@ def main() -> int:
         print('Warning: did not generate any documentation')
         return 0
     # Create packages list for each version
+    default_version = list(valid.keys())[0]
+    repo_name = None
+    repo_name_match = re.match('.*/(.*).git', repo_url)
+    if repo_name_match:
+        repo_name = repo_name_match[1]
+    else:
+        # Default to first package of first version
+        repo_name = valid[default_version][0]
     for version, packages in valid.items():
         other_versions = set(valid.keys())
         other_versions.remove(version)
         packages_list_file = create_packages_list_file(
+            repo_name,
             version,
             packages,
             os.path.join(output_dir, version),
@@ -492,7 +505,6 @@ def main() -> int:
             print(f"Failed to create packages list file for version '{version}'")
             return 1
     # Create redirect to default version (first one in the list)
-    default_version = list(valid.keys())[0]
     print(f"Creating redirection file to default version '{default_version}'")
     main_index_file = create_html_redirect_file(default_version, output_dir)
     if not main_index_file:
