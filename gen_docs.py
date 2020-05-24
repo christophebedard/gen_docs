@@ -341,12 +341,21 @@ def main() -> int:
     custom_versions = args.version
     output_dir = os.path.join(os.path.curdir, args.output)
     repos_dir = os.path.join(os.path.curdir, 'repos')
+    artifact_dirs = [output_dir, repos_dir]
 
-    if args.clean:
+    # Clean if option is enabled or if artifact directories exist
+    if (
+        args.clean or
+        any(os.path.exists(artifact_dir) for artifact_dir in artifact_dirs)
+    ):
         print('Cleaning up')
-        shutil.rmtree(output_dir, ignore_errors=True)
-        shutil.rmtree(repos_dir, ignore_errors=True)
-        return 0
+        for artifact_dir in artifact_dirs:
+            print(f"\tRemoving '{artifact_dir}'")
+            shutil.rmtree(artifact_dir, ignore_errors=True)
+        if args.clean:
+            return 0
+        else:
+            print()
 
     # Check that doxygen is installed
     if not has_doxygen():
