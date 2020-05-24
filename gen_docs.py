@@ -17,8 +17,8 @@
 import argparse
 from collections import defaultdict
 from io import BytesIO
-import re
 import os
+import re
 import shutil
 import subprocess
 import sys
