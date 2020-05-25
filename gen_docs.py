@@ -297,6 +297,32 @@ def clone_repo(
     return run(cmd)[0].returncode == 0
 
 
+def get_repo_name_from_url(
+    repo_url: str,
+    default_version: str,
+    valid: Dict[str, List[str]],
+) -> str:
+    """
+    Extract repository name from URL.
+
+    If it cannot be extracted, the name of the first package of the default version is used.
+
+    :param repo_url: the repository URL
+    :param default_version: the default version
+    :param valid: the dictionary of valid versions & packages
+    :return: the repo name, or a default package if it failed
+    """
+    repo_name = None
+    repo_name_match = re.match('.*/(.*)$', repo_url)
+    if repo_name_match:
+        # Remove '.git' extension if it is there
+        repo_name = repo_name_match[1].replace('.git', '')
+    else:
+        # Default to first package of first version
+        repo_name = valid[default_version][0]
+    return repo_name
+
+
 def load_config(
     path: str = 'gen_docs.yml',
 ) -> Optional[Dict]:
@@ -484,13 +510,7 @@ def main() -> int:
         return 0
     # Create packages list for each version
     default_version = list(valid.keys())[0]
-    repo_name = None
-    repo_name_match = re.match('.*/(.*).git', repo_url)
-    if repo_name_match:
-        repo_name = repo_name_match[1]
-    else:
-        # Default to first package of first version
-        repo_name = valid[default_version][0]
+    repo_name = get_repo_name_from_url(repo_url, default_version, valid)
     for version, packages in valid.items():
         other_versions = set(valid.keys())
         other_versions.remove(version)
