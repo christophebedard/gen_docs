@@ -56,6 +56,12 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
         help='the path to the configuration file (default: %(default)s)',
     )
     parser.add_argument(
+        '-d', '--debug',
+        default=False,
+        action='store_true',
+        help='print out stdout from commands (default: %(default)s)',
+    )
+    parser.add_argument(
         '--version',
         nargs='*',
         default=None,
@@ -114,39 +120,47 @@ def has_sphinx() -> bool:
 def run_doxygen(
     package_dir: str,
     version: str,
+    debug: bool = False,
 ) -> bool:
     """
     Run doxygen for a package.
 
     :param package_dir: the directory of the package for which to run doxygen
     :param version: the version (PROJECT_NUMBER) to be used/displayed by doxygen
+    :param debug: whether to print stdout
     :return: True if successful, False otherwise
     """
     os.environ['PROJECT_NUMBER'] = version
-    rc, _, _ = run(['doxygen'], package_dir)
+    rc, stdout, _ = run(['doxygen'], package_dir)
     if 0 != rc.returncode:
         return False
+    if debug:
+        print(stdout)
     return True
 
 
 def run_sphinx(
     package_dir: str,
     version: str,
+    debug: bool = False,
 ) -> bool:
     """
     Run sphinx for a package.
 
     :param package_dir: the directory of the package for which run sphinx
     :param version: the version to be used/displayed by sphinx
+    :param debug: whether to print stdout
     :return: True if successful, False otherwise
     """
     os.environ['SPHINX_VERSION_FULL'] = version
     os.environ['SPHINX_VERSION_SHORT'] = version
     # The Makefile is under docs/
     make_path = os.path.join(package_dir, 'docs')
-    rc, _, _ = run(['make', 'html'], make_path)
+    rc, stdout, _ = run(['make', 'html'], make_path)
     if 0 != rc.returncode:
         return False
+    if debug:
+        print(stdout)
     return True
 
 
@@ -402,6 +416,7 @@ def main() -> int:
     """Run main logic."""
     args = parse_args()
     custom_versions = args.version
+    debug = args.debug
     output_dir = os.path.join(os.path.curdir, args.output)
     repos_dir = os.path.join(os.path.curdir, 'repos')
     artifact_dirs = [output_dir, repos_dir]
@@ -486,11 +501,11 @@ def main() -> int:
             # Run docs generation
             print(f"\tRunning {docs_type} for package '{package}'")
             if 'doxygen' == docs_type:
-                if not run_doxygen(package_dir, version):
+                if not run_doxygen(package_dir, version, debug):
                     return 1
                 docs_output_dir = os.path.join(package_dir, 'doc_output', 'html')
             elif 'sphinx' == docs_type:
-                if not run_sphinx(package_dir, version):
+                if not run_sphinx(package_dir, version, debug):
                     return 1
                 docs_output_dir = os.path.join(package_dir, 'docs', 'build', 'html')
             else:
