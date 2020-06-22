@@ -88,19 +88,27 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
 def run(
     cmd: List[str],
     cwd: Optional[str] = None,
+    debug: bool = False,
 ) -> Tuple[subprocess.Popen, str, str]:
     """
     Run command.
 
     :param cmd: the command as a list
     :param cwd: the current working directory in which to run the command
+    :param debug: whether to redirect stderr to stdout and combine them
     :return: (Popen object, stdout, stderr)
     """
-    process = subprocess.Popen(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = subprocess.Popen(
+        cmd,
+        cwd=cwd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT if debug else subprocess.PIPE,
+    )
     stdout, stderr = process.communicate()
+    stderr = stderr or b''
     if 0 != process.returncode:
         cmd_str = ' '.join(cmd)
-        print(f"cmd '{cmd_str}' failed: {stderr.decode()}")
+        print(f"cmd '{cmd_str}' failed: {stdout.decode() if debug else stderr.decode()}")
     return process, stdout.decode(), stderr.decode()
 
 
@@ -131,7 +139,7 @@ def run_doxygen(
     :return: True if successful, False otherwise
     """
     os.environ['PROJECT_NUMBER'] = version
-    rc, stdout, _ = run(['doxygen'], package_dir)
+    rc, stdout, _ = run(['doxygen'], package_dir, debug)
     if 0 != rc.returncode:
         return False
     if debug:
@@ -156,7 +164,7 @@ def run_sphinx(
     os.environ['SPHINX_VERSION_SHORT'] = version
     # The Makefile is under docs/
     make_path = os.path.join(package_dir, 'docs')
-    rc, stdout, _ = run(['make', 'html'], make_path)
+    rc, stdout, _ = run(['make', 'html'], make_path, debug)
     if 0 != rc.returncode:
         return False
     if debug:
