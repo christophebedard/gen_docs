@@ -127,18 +127,35 @@ def has_sphinx() -> bool:
 
 def run_doxygen(
     package_dir: str,
-    version: str,
+    version: Optional[str] = None,
+    tagfile_rel_path: Optional[str] = None,
+    cppref_tagfile_path: Optional[str] = None,
     debug: bool = False,
 ) -> bool:
     """
     Run doxygen for a package.
 
     :param package_dir: the directory of the package for which to run doxygen
-    :param version: the version (PROJECT_NUMBER) to be used/displayed by doxygen
+    :param version: the version to be used/displayed by doxygen
+        (optionally overwriting PROJECT_NUMBER)
+    :param tagfile_rel_path: the relative path to the tagfile to generate
+        (optionally overwriting GENERATE_TAGFILE)
+    :param cppref_tagfile_path: the path to a cpp reference tagfile
+        (optionally adding to TAGFILES)
     :param debug: whether to print stdout
     :return: True if successful, False otherwise
     """
-    os.environ['PROJECT_NUMBER'] = version
+    # Append options to Doxyfile to overwrite the current values
+    if version or tagfile_rel_path or cppref_tagfile_path:
+        doxyfile_path = os.path.join(package_dir, 'Doxyfile')
+        with open(doxyfile_path, 'a') as doxyfile:
+            if version:
+                doxyfile.write(f'PROJECT_NUMBER = "{version}"\n')
+            if tagfile_rel_path:
+                doxyfile.write(f'GENERATE_TAGFILE = "{tagfile_rel_path}"\n')
+            if cppref_tagfile_path:
+                doxyfile.write(
+                    f'TAGFILES += "{cppref_tagfile_path}=http://en.cppreference.com/w/"\n')
     rc, stdout, _ = run(['doxygen'], package_dir, debug)
     if 0 != rc.returncode:
         return False
@@ -470,12 +487,14 @@ def main() -> int:
 
     # Download cppreference file
     print('Downloading cppreference tag file')
+    cppref_tagfile_name = 'cppreference-doxygen-web.tag.xml'
     if not download_zip_file_and_extract(
         cppref_zip_url,
-        'cppreference-doxygen-web.tag.xml',
+        cppref_tagfile_name,
         data_dir,
     ):
         return 1
+    cppref_tagfile_path = os.path.join(data_dir, cppref_tagfile_name)
 
     print()
 
@@ -509,7 +528,14 @@ def main() -> int:
             # Run docs generation
             print(f"\tRunning {docs_type} for package '{package}'")
             if 'doxygen' == docs_type:
-                if not run_doxygen(package_dir, version, debug):
+                package_tagfile_path = os.path.join(data_dir, package + '.tag')
+                if not run_doxygen(
+                    package_dir,
+                    version=version,
+                    tagfile_rel_path=package_tagfile_path,
+                    cppref_tagfile_path=cppref_tagfile_path,
+                    debug=debug,
+                ):
                     return 1
                 docs_output_dir = os.path.join(package_dir, 'doc_output', 'html')
             elif 'sphinx' == docs_type:
