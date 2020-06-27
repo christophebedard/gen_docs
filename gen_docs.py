@@ -147,15 +147,21 @@ def run_doxygen(
     """
     # Append options to Doxyfile to overwrite the current values
     if version or tagfile_rel_path or cppref_tagfile_path:
+        print('\t\tAppending parameters:')
         doxyfile_path = os.path.join(package_dir, 'Doxyfile')
         with open(doxyfile_path, 'a') as doxyfile:
             if version:
-                doxyfile.write(f'PROJECT_NUMBER = "{version}"\n')
+                param = f'PROJECT_NUMBER = "{version}"'
+                print('\t\t\t' + param)
+                doxyfile.write(param + '\n')
             if tagfile_rel_path:
-                doxyfile.write(f'GENERATE_TAGFILE = "{tagfile_rel_path}"\n')
+                param = f'GENERATE_TAGFILE = "{tagfile_rel_path}"'
+                print('\t\t\t' + param)
+                doxyfile.write(param + '\n')
             if cppref_tagfile_path:
-                doxyfile.write(
-                    f'TAGFILES += "{cppref_tagfile_path}=http://en.cppreference.com/w/"\n')
+                param = f'TAGFILES += "{cppref_tagfile_path}=http://en.cppreference.com/w/"'
+                print('\t\t\t' + param)
+                doxyfile.write(param + '\n')
     rc, stdout, _ = run(['doxygen'], package_dir, debug)
     if 0 != rc.returncode:
         return False
