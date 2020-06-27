@@ -172,19 +172,35 @@ def run_doxygen(
 
 def run_sphinx(
     package_dir: str,
-    version: str,
+    version: Optional[str] = None,
+    release: Optional[str] = None,
     debug: bool = False,
 ) -> bool:
     """
     Run sphinx for a package.
 
     :param package_dir: the directory of the package for which run sphinx
-    :param version: the version to be used/displayed by sphinx
+    :param version: the version name to be used/displayed by sphinx
+        (optionally overwriting 'version')
+    :param release: the release name to be used/displayed by sphinx
+        (optionally overwriting 'release')
     :param debug: whether to print stdout
     :return: True if successful, False otherwise
     """
     os.environ['SPHINX_VERSION_FULL'] = version
     os.environ['SPHINX_VERSION_SHORT'] = version
+    if version or release:
+        print('\t\tAppending parameters:')
+        conf_file_path = os.path.join(package_dir, 'docs', 'source', 'conf.py')
+        with open(conf_file_path, 'a') as conf:
+            if version:
+                param = f"version = '{version}'"
+                print('\t\t\t' + param)
+                conf.write(param + '\n')
+            if release:
+                param = f"release = '{release}'"
+                print('\t\t\t' + param)
+                conf.write(param + '\n')
     # The Makefile is under docs/
     make_path = os.path.join(package_dir, 'docs')
     rc, stdout, _ = run(['make', 'html'], make_path, debug)
@@ -443,6 +459,24 @@ def get_package_docs_type(
     return None
 
 
+def get_package_version(
+    package_xml_path: str,
+) -> Optional[str]:
+    """
+    Get a package's version from its package.xml file.
+
+    :param package_xml_path: the path to the package's package.xml file
+    :return: the version, or None if it failed
+    """
+    version = None
+    with open(package_xml_path, 'r') as package_xml_file:
+        content = package_xml_file.read()
+        version_match = re.match(r'.*<version>(.*)<\/version>.*', content, flags=re.DOTALL)
+        if version_match:
+            version = version_match.group(1)
+    return version
+
+
 def main() -> int:
     """Run main logic."""
     args = parse_args()
@@ -545,7 +579,13 @@ def main() -> int:
                     return 1
                 docs_output_dir = os.path.join(package_dir, 'doc_output', 'html')
             elif 'sphinx' == docs_type:
-                if not run_sphinx(package_dir, version, debug):
+                package_xml_path = os.path.join(package_dir, 'package.xml')
+                if not run_sphinx(
+                    package_dir,
+                    version=version,
+                    release=get_package_version(package_xml_path),
+                    debug=debug,
+                ):
                     return 1
                 docs_output_dir = os.path.join(package_dir, 'docs', 'build', 'html')
             else:
