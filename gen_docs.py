@@ -540,6 +540,12 @@ def main() -> int:
 
     # Process repos
     repo_url = config['docs']['repo']
+    # Insert GitHub token if one is provided through the environment
+    if 'GITHUB_TOKEN' in os.environ:
+        repo_url = repo_url.replace(
+            'https://github.com',
+            f'https://x-access-token:{os.environ["GITHUB_TOKEN"]}@github.com',
+        )
     valid = defaultdict(list)
     for version, packages in config['docs']['versions'].items():
         # Clone repo @ branch
