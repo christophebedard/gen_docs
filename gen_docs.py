@@ -542,6 +542,7 @@ def main() -> int:
     repo_url = config['docs']['repo']
     # Insert GitHub token if one is provided through the environment
     if 'GITHUB_TOKEN' in os.environ:
+        print("Using GITHUB_TOKEN")
         repo_url = repo_url.replace(
             'https://github.com',
             f'https://x-access-token:{os.environ["GITHUB_TOKEN"]}@github.com',
