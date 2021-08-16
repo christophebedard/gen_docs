@@ -562,6 +562,8 @@ def main() -> int:
             print(f"Cloning repo at version '{version}'")
             if not clone_repo(repo_url, repo_dir, branch=version):
                 return 1
+        else:
+            print(f"Using repo at version '{version}'")
 
         # If no packages are given, search for packages in the repo
         if not packages:
