@@ -83,6 +83,11 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
         action='store_true',
         help='remove directories and files that might have been created by running the command',
     )
+    parser.add_argument(
+        '--skip-clone',
+        action='store_true',
+        help='do not clone repos; expect repos to be cloned under ./repos/$version/',
+    )
 
 
 def run(
@@ -484,7 +489,9 @@ def main() -> int:
     debug = args.debug
     output_dir = os.path.join(os.path.curdir, args.output)
     repos_dir = os.path.join(os.path.curdir, 'repos')
-    artifact_dirs = [output_dir, repos_dir]
+    artifact_dirs = [output_dir]
+    if not args.skip_clone:
+        artifact_dirs.append(repos_dir)
 
     # Clean if option is enabled or if artifact directories exist
     if (
@@ -550,10 +557,11 @@ def main() -> int:
     valid = defaultdict(list)
     for version, packages in config['docs']['versions'].items():
         # Clone repo @ branch
-        print(f"Cloning repo at version '{version}'")
         repo_dir = os.path.join(repos_dir, version)
-        if not clone_repo(repo_url, repo_dir, branch=version):
-            return 1
+        if not args.skip_clone:
+            print(f"Cloning repo at version '{version}'")
+            if not clone_repo(repo_url, repo_dir, branch=version):
+                return 1
 
         # If no packages are given, search for packages in the repo
         if not packages:
