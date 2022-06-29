@@ -5,6 +5,9 @@
 Simple tool for generating documentation for ROS packages.
 It currently supports doxygen and sphinx.
 
+**NOTE: this was a simple & simplistic solution that was created before [`rosdoc2`](https://github.com/ros-infrastructure/rosdoc2) existed.**
+**`gen_docs` is now deprecated and `rosdoc2` should be used instead.**
+
 ## What it does
 
 It takes an input configuration as a `.yml` file:
